@@ -6,6 +6,7 @@ async function connectDB() {
     console.log("DB connection successful");
   } catch (error) {
     console.log("DB connection failed");
+    process.exit(1);
   }
 }
 
