@@ -2,11 +2,13 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
+import gracefulShutdown from "./utils/gracefulShutdown.js";
 
 import "dotenv/config";
 
 import connectDB from "./config/db.js";
 import helmet from "helmet";
+import mongoose from "mongoose";
 
 const app = express();
 
@@ -44,9 +46,12 @@ app.use((err, req, res, next) => {
   });
 });
 
+let server;
 const PORT = process.env.PORT || 3000;
 connectDB().then(() => {
-  app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     console.log(`server started on port ${PORT}`);
   });
 });
+
+process.on("SIGTERM", () => gracefulShutdown(server, "SIGTERM"));
