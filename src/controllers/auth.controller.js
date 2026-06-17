@@ -12,6 +12,7 @@ const registerAccount = async (payload) => {
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
+  console.log("passwordHash >>", passwordHash);
 };
 
 const loginAccount = () => {};
