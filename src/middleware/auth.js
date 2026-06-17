@@ -1,5 +1,6 @@
-import AppError from "../utils/AppError";
-import { verifyToken } from "../utils/jwt";
+import { Account } from "../models/account.model.js";
+import AppError from "../utils/AppError.js";
+import { verifyToken } from "../utils/jwt.js";
 
 function verifyJWT(req, res, next) {
   try {

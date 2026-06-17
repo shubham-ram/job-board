@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import { Account } from "../models/account.model";
-import AppError from "../utils/AppError";
-import { generateRefreshToken } from "../utils/refreshToken";
-import { generateToken } from "../utils/jwt";
+import { Account } from "../models/account.model.js";
+import AppError from "../utils/AppError.js";
+import { generateRefreshToken } from "../utils/refreshToken.js";
+import { generateToken } from "../utils/jwt.js";
 
 const registerAccount = async (payload) => {
   const { email, password } = payload;
