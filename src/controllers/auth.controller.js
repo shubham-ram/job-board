@@ -7,7 +7,7 @@ import { generateToken } from "../utils/jwt.js";
 const registerAccount = async (payload) => {
   const { email, password } = payload;
 
-  const existingAccount = Account.findOne({ email });
+  const existingAccount = await Account.findOne({ email });
 
   if (existingAccount) {
     throw new AppError("Account with this email already exits", 500);
@@ -23,7 +23,7 @@ const registerAccount = async (payload) => {
     password: passwordHash,
   });
 
-  const accessToken = generateToken(account);
+  const accessToken = generateToken(account._id);
 
   return {
     account,
@@ -43,13 +43,16 @@ const loginAccount = async (payload) => {
     throw new AppError("No User Found", 404);
   }
 
-  const isPasswordMatch = await bcrypt.compare(password, existingAccount);
+  const isPasswordMatch = await bcrypt.compare(
+    password,
+    existingAccount.password
+  );
 
   if (!isPasswordMatch) {
     throw new AppError("Incorrect Password", 401);
   }
 
-  const accessToken = generateToken(existingAccount);
+  const accessToken = generateToken(existingAccount._id);
 
   return {
     account: existingAccount,
@@ -61,18 +64,18 @@ const loginAccount = async (payload) => {
 const refreshAccessToken = async (payload) => {
   const { refreshToken } = payload;
 
-  if (!refreshAccessToken) {
+  if (!refreshToken) {
     throw new AppError("unauthorized request", 401);
   }
 
-  const account = Account.findOne({ refreshToken });
+  const account = await Account.findOne({ refreshToken });
 
   if (!account) {
     throw new AppError("Invalid Refresh token", 401);
   }
 
   const newRefreshToken = generateRefreshToken();
-  const newAccessToken = generateToken(account);
+  const newAccessToken = generateToken(account._id);
 
   account.refreshToken = newRefreshToken;
 
