@@ -10,6 +10,8 @@ import gracefulShutdown from "./utils/gracefulShutdown.js";
 import connectDB from "./config/db.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 
+import authRoutes from "./routes/auth.routes.js";
+
 const app = express();
 
 app.use(helmet());
@@ -19,17 +21,12 @@ app.use(cors());
 
 app.use(globalLimiter);
 
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res, next) => {
-  let a = true;
-
-  if (a) {
-    next({ message: "testing err" });
-  }
-});
+// API routes
+app.use("/auth", authRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
