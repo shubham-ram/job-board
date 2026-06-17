@@ -1,5 +1,5 @@
-import crypto from "crypto"
+import crypto from "crypto";
 
-export const generateRefreshToken = ()=>{
-  return crypto.randomBytes(64).toString('hex');
-}
+export const generateRefreshToken = () => {
+  return crypto.randomBytes(64).toString("hex");
+};
