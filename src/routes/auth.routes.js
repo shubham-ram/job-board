@@ -9,6 +9,7 @@ import {
   ACCESS_TOKEN_COOKIE_OPTIONS,
   REFRESH_TOKEN_COOKIE_OPTIONS,
 } from "../constant.js";
+import verifyJWT from "../middleware/auth.js";
 
 const router = Router();
 
@@ -49,7 +50,7 @@ router.post("/refresh", async (req, res) => {
     .json("Access token refreshed");
 });
 
-router.post("/logout", async (req, res) => {
+router.post("/logout", verifyJWT, async (req, res) => {
   const account = req.account;
 
   await logoutAccount(account);
