@@ -2,7 +2,7 @@ import { Account } from "../models/account.model.js";
 import AppError from "../utils/AppError.js";
 import { verifyToken } from "../utils/jwt.js";
 
-function verifyJWT(req, res, next) {
+async function verifyJWT(req, res, next) {
   try {
     const { accessToken } = req.cookies;
 
@@ -10,7 +10,13 @@ function verifyJWT(req, res, next) {
       throw new AppError("Unauthorized requies", 401);
     }
 
-    const account = verifyToken(accessToken);
+    const accountId = verifyToken(accessToken);
+
+    const account = await Account.findById(accountId);
+
+    if (!account) {
+      throw new AppError("Invalid access token", 401);
+    }
 
     req.account = account;
 
