@@ -1,7 +1,10 @@
 import bcrypt from "bcryptjs";
 import { Account } from "../models/account.model.js";
 import AppError from "../utils/AppError.js";
-import { generateRefreshToken } from "../utils/refreshToken.js";
+import {
+  generateRefreshToken,
+  getHashedRefreshToken,
+} from "../utils/refreshToken.js";
 import { generateToken } from "../utils/jwt.js";
 
 const registerAccount = async (payload) => {
@@ -16,10 +19,11 @@ const registerAccount = async (payload) => {
   const passwordHash = await bcrypt.hash(password, 12);
 
   const refreshToken = generateRefreshToken();
+  const hashedRefreshToken = getHashedRefreshToken(refreshToken);
 
   const account = await Account.create({
     ...payload,
-    refreshToken,
+    refreshToken: hashedRefreshToken,
     password: passwordHash,
   });
 
@@ -68,16 +72,20 @@ const refreshAccessToken = async (payload) => {
     throw new AppError("unauthorized request", 401);
   }
 
-  const account = await Account.findOne({ refreshToken });
+  const hashedRefreshToken = getHashedRefreshToken(refreshToken);
+
+  const account = await Account.findOne({ hashedRefreshToken });
 
   if (!account) {
     throw new AppError("Invalid Refresh token", 401);
   }
 
-  const newRefreshToken = generateRefreshToken();
   const newAccessToken = generateToken(account._id);
 
-  account.refreshToken = newRefreshToken;
+  const newRefreshToken = generateRefreshToken();
+  const hashedNewRefreshToken = getHashedRefreshToken(newRefreshToken);
+
+  account.refreshToken = hashedNewRefreshToken;
 
   await account.save({ validateBeforeSave: false });
 
