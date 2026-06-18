@@ -74,7 +74,7 @@ const refreshAccessToken = async (payload) => {
 
   const hashedRefreshToken = getHashedRefreshToken(refreshToken);
 
-  const account = await Account.findOne({ hashedRefreshToken });
+  const account = await Account.findOne({ refreshToken: hashedRefreshToken });
 
   if (!account) {
     throw new AppError("Invalid Refresh token", 401);
