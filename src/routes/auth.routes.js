@@ -30,7 +30,7 @@ router.post("/login", async (req, res) => {
   const { account, accessToken, refreshToken } = await loginAccount(payload);
 
   return res
-    .status(201)
+    .status(200)
     .cookie("accessToken", accessToken, ACCESS_TOKEN_COOKIE_OPTIONS)
     .cookie("refreshToken", refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS)
     .json(account);
@@ -39,14 +39,13 @@ router.post("/login", async (req, res) => {
 router.post("/refresh", async (req, res) => {
   const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
-  const { newAccessToken, newRefreshToken } = await refreshAccessToken({
+  const { newAccessToken } = await refreshAccessToken({
     refreshToken,
   });
 
   res
     .status(200)
     .cookie("accessToken", newAccessToken, ACCESS_TOKEN_COOKIE_OPTIONS)
-    .cookie("refreshToken", newRefreshToken, REFRESH_TOKEN_COOKIE_OPTIONS)
     .json("Access token refreshed");
 });
 

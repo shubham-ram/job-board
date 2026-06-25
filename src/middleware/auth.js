@@ -10,9 +10,9 @@ async function verifyJWT(req, res, next) {
       throw new AppError("Unauthorized requies", 401);
     }
 
-    const accountId = verifyToken(accessToken);
+    const decoded = verifyToken(accessToken);
 
-    const account = await Account.findById(accountId);
+    const account = await Account.findById(decoded.accountId);
 
     if (!account) {
       throw new AppError("Invalid access token", 401);
