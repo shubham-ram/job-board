@@ -28,6 +28,10 @@ app.use(express.urlencoded({ extended: true }));
 // API routes
 app.use("/auth", authRoutes);
 
+app.get("/health", (req, res) => {
+  res.status(200).send("Working fine");
+});
+
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.isOperational ? err.message : "Something went wrong";
@@ -42,6 +46,7 @@ app.use((err, req, res, next) => {
 
 let server;
 const PORT = process.env.PORT || 3000;
+
 connectDB().then(() => {
   server = app.listen(PORT, () => {
     console.log(`server started on port ${PORT}`);
