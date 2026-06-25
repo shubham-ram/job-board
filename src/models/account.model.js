@@ -21,14 +21,18 @@ const accountSchema = new mongoose.Schema(
       type: String,
       enum: ["admin", "company", "candidate"],
       required: true,
+      default: "candidate",
     },
     refreshToken: {
       type: String,
-      required: true,
       select: false,
     },
     resumeUrl: {
       type: String,
+    },
+    refreshTokenExpiresAt: {
+      type: Date,
+      select: false,
     },
   },
   { timestamps: true }
