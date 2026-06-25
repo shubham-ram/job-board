@@ -43,48 +43,40 @@ const registerAccount = async (payload) => {
 const loginAccount = async (payload) => {
   const { email, password } = payload;
 
-  const existingAccount = await Account.findOne({ email }).select(
-    "+refreshToken +password +refreshTokenExpiresAt"
-  );
+  const existingAccount = await Account.findOne({ email }).select("+password");
 
   if (!existingAccount) {
     throw new AppError("No User Found", 404);
   }
 
-  let {
-    password: storedPassword,
-    refreshTokenExpiresAt,
-    refreshToken,
-    ...rest
-  } = existingAccount.toObject();
-
-  const isPasswordMatch = await bcrypt.compare(password, storedPassword);
+  const isPasswordMatch = await bcrypt.compare(
+    password,
+    existingAccount.password
+  );
 
   if (!isPasswordMatch) {
     throw new AppError("Incorrect Password", 401);
   }
 
-  const isRefreshTokenExpired =
-    !refreshToken || refreshTokenExpiresAt < new Date();
-
-  if (isRefreshTokenExpired) {
-    refreshToken = generateRefreshToken();
-    const hashedRefreshToken = getHashedRefreshToken(refreshToken);
-
-    existingAccount.refreshToken = hashedRefreshToken;
-    existingAccount.refreshTokenExpiresAt = new Date(
-      Date.now() + REFRESH_TOKEN_EXPIRY
-    );
-
-    await existingAccount.save({ validateBeforeSave: false });
-  }
+  const refreshToken = generateRefreshToken();
+  existingAccount.refreshToken = getHashedRefreshToken(refreshToken);
+  existingAccount.refreshTokenExpiresAt = new Date(
+    Date.now() + REFRESH_TOKEN_EXPIRY
+  );
+  await existingAccount.save({ validateBeforeSave: false });
 
   const accessToken = generateToken({ accountId: existingAccount._id });
+
+  const {
+    password: _p,
+    refreshToken: _r,
+    ...rest
+  } = existingAccount.toObject();
 
   return {
     account: rest,
     accessToken,
-    refreshToken: refreshToken,
+    refreshToken,
   };
 };
 
@@ -113,9 +105,14 @@ const refreshAccessToken = async (payload) => {
     throw new AppError("Refresh token expired, please login", 401);
   }
 
+  const newRefreshToken = generateRefreshToken();
+  account.refreshToken = getHashedRefreshToken(newRefreshToken);
+  account.refreshTokenExpiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY);
+  await account.save({ validateBeforeSave: false });
+
   const newAccessToken = generateToken({ accountId: account._id });
 
-  return { newAccessToken };
+  return { newAccessToken, newRefreshToken };
 };
 
 const logoutAccount = async (payload) => {

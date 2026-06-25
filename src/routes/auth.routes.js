@@ -39,20 +39,19 @@ router.post("/login", async (req, res) => {
 router.post("/refresh", async (req, res) => {
   const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
-  const { newAccessToken } = await refreshAccessToken({
+  const { newAccessToken, newRefreshToken } = await refreshAccessToken({
     refreshToken,
   });
 
   res
     .status(200)
     .cookie("accessToken", newAccessToken, ACCESS_TOKEN_COOKIE_OPTIONS)
+    .cookie("refreshToken", newRefreshToken, REFRESH_TOKEN_COOKIE_OPTIONS)
     .json("Access token refreshed");
 });
 
 router.post("/logout", verifyJWT, async (req, res) => {
-  const account = req.account;
-
-  await logoutAccount(account);
+  await logoutAccount({ _id: req.account._id });
 
   res
     .status(200)
