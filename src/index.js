@@ -17,7 +17,12 @@ const app = express();
 app.use(helmet());
 app.use(morgan("dev"));
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN?.split(",") ?? true,
+    credentials: true,
+  })
+);
 
 app.use(globalLimiter);
 
@@ -32,7 +37,7 @@ app.get("/health", (req, res) => {
   res.status(200).send("Working fine");
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   const statusCode = err.statusCode || 500;
   const message = err.isOperational ? err.message : "Something went wrong";
 
@@ -54,3 +59,4 @@ connectDB().then(() => {
 });
 
 process.on("SIGTERM", () => gracefulShutdown(server, "SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown(server, "SIGINT"));
