@@ -1,5 +1,9 @@
 const REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 7;
 
+const ADMIN = "admin";
+const COMPANY = "company";
+const CANDIDATE = "candidate";
+
 const isProd = process.env.NODE_ENV === "production";
 
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
@@ -17,6 +21,9 @@ const ACCESS_TOKEN_COOKIE_OPTIONS = {
 };
 
 export {
+  ADMIN,
+  COMPANY,
+  CANDIDATE,
   REFRESH_TOKEN_EXPIRY,
   REFRESH_TOKEN_COOKIE_OPTIONS,
   ACCESS_TOKEN_COOKIE_OPTIONS,
