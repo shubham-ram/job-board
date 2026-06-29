@@ -11,6 +11,7 @@ import connectDB from "./config/db.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 
 import authRoutes from "./routes/auth.routes.js";
+import jobRouter from "./routes/jobs.routes.js";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use("/auth", authRoutes);
+app.use("/jobs", jobRouter);
 
 app.get("/health", (req, res) => {
   res.status(200).send("Working fine");
