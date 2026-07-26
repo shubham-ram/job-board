@@ -1,3 +1,4 @@
+import { ADMIN } from "../constant.js";
 import { Job } from "../models/job.model.js";
 import AppError from "../utils/AppError.js";
 
@@ -29,20 +30,30 @@ async function createJob(req, res) {
 }
 
 async function getJobs(req, res) {
-  const { pageLimit = 10, title, experienceLevel, skills = [] } = req.query;
+  const {
+    title,
+    experienceLevel,
+    skills = [],
+    salaryMin,
+    salaryMax,
+  } = req.query;
 
   const page = Math.max(1, Number(req.query.page) || 1);
+  const pageLimit = Math.max(10, Number(req.query.pageLimit) || 10);
 
   const offset = (page - 1) * pageLimit;
 
   const query = {
-    ...(title && { title: { $regex: title } }),
+    ...(title && { $text: { $search: title } }),
     ...(experienceLevel && { experienceLevel: { $eq: experienceLevel } }),
-    ...(skills.length > 0 && { skills: { $in: skills } }),
+    ...(skills?.length > 0 && { skills: { $in: skills } }),
+    ...(salaryMin && { salaryMin: { $gte: Number(salaryMin) } }),
+    ...(salaryMax && { salaryMax: { $lte: Number(salaryMax) } }),
   };
 
   const jobs = await Job.find(query)
     .lean()
+    .sort({ createdAt: -1 })
     .skip(offset)
     .limit(Number(pageLimit));
 
@@ -67,15 +78,29 @@ async function getJob(req, res) {
 
 async function updateJob(req, res) {
   const jobId = req.params.id;
+  const account = req.account;
 
   if (!jobId) {
-    throw new AppError("Missing JobId", 404);
+    throw new AppError("Job ID is required", 400);
+  }
+
+  const job = await Job.findById(jobId);
+
+  if (!job) {
+    throw new AppError(`No job found with id: ${jobId}`, 404);
+  }
+
+  const isOwner = job.createdBy.toString() === account._id.toString();
+  const isAdmin = account.role === ADMIN;
+
+  if (!isAdmin && !isOwner) {
+    throw new AppError("You dont have access", 403);
   }
 
   const { title, description, location, jobType, experienceLevel } = req.body;
 
   if (!title && !description && !location && !jobType && !experienceLevel) {
-    throw new AppError("Missing few parameters", 400);
+    throw new AppError("Provide at least one field to update", 400);
   }
 
   const payload = {
@@ -86,30 +111,38 @@ async function updateJob(req, res) {
     ...(experienceLevel && { experienceLevel }),
   };
 
-  const updatedJob = await Job.findByIdAndUpdate(jobId, payload, {
+  await Job.updateOne({ _id: jobId }, payload, {
     runValidators: true,
-    new: true,
   });
 
-  if (!updatedJob) {
-    throw new AppError(`No job found with id: ${jobId}`, 404);
-  }
-
-  res.status(200).json({ message: `update job with ${jobId} id` });
+  res.status(200).json({
+    success: true,
+    message: `updated job with ${jobId} id`,
+  });
 }
 
 async function deleteJob(req, res) {
   const jobId = req.params.id;
+  const account = req.account;
 
   if (!jobId) {
     throw new AppError("Missing Job id", 400);
   }
 
-  const deletedJob = await Job.findByIdAndDelete(jobId);
+  const job = await Job.findById(jobId);
 
-  if (!deletedJob) {
+  if (!job) {
     throw new AppError(`No job found with id: ${jobId}`, 404);
   }
+
+  const isOwner = job.createdBy.toString() === account._id.toString();
+  const isAdmin = account.role === ADMIN;
+
+  if (!isOwner && !isAdmin) {
+    throw new AppError("You dont have access", 403);
+  }
+
+  await Job.deleteOne({ _id: jobId });
 
   res.status(200).json({ message: `Job delete with id: ${jobId}` });
 }
