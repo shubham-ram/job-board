@@ -68,7 +68,8 @@ async function getJobs(req, res) {
     .lean()
     .sort({ createdAt: -1 })
     .skip(offset)
-    .limit(Number(pageLimit));
+    .limit(Number(pageLimit))
+    .populate("createdBy");
 
   return res.status(200).json({ page, pageLimit, jobs });
 }
@@ -80,7 +81,7 @@ async function getJob(req, res) {
     throw new AppError("Missing JobId", 404);
   }
 
-  const job = await Job.findById(jobId);
+  const job = await Job.findById(jobId).populate("createdBy");
 
   if (!job) {
     throw new AppError("No job found", 404);
