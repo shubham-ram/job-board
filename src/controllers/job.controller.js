@@ -60,8 +60,8 @@ async function getJobs(req, res) {
     ...(title && { $text: { $search: title } }),
     ...(experienceLevel && { experienceLevel: { $eq: experienceLevel } }),
     ...(skillsArray?.length > 0 && { skills: { $in: skillsArray } }),
-    ...(salaryMin && { salaryMax: { $lte: Number(salaryMin) } }),
-    ...(salaryMax && { salaryMin: { $gte: Number(salaryMax) } }),
+    ...(salaryMin && { salaryMax: { $gte: Number(salaryMin) } }),
+    ...(salaryMax && { salaryMin: { $lte: Number(salaryMax) } }),
   };
 
   const jobs = await Job.find(query)
