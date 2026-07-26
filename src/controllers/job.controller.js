@@ -39,16 +39,29 @@ async function getJobs(req, res) {
   } = req.query;
 
   const page = Math.max(1, Number(req.query.page) || 1);
-  const pageLimit = Math.max(10, Number(req.query.pageLimit) || 10);
+  const pageLimit = Math.min(
+    50,
+    Math.max(1, Number(req.query.pageLimit) || 10)
+  );
+
+  let skillsArray;
+
+  if (Array.isArray(skills)) {
+    skillsArray = skills;
+  } else if (skills) {
+    skillsArray = [skills];
+  } else {
+    skillsArray = [];
+  }
 
   const offset = (page - 1) * pageLimit;
 
   const query = {
     ...(title && { $text: { $search: title } }),
     ...(experienceLevel && { experienceLevel: { $eq: experienceLevel } }),
-    ...(skills?.length > 0 && { skills: { $in: skills } }),
-    ...(salaryMin && { salaryMin: { $gte: Number(salaryMin) } }),
-    ...(salaryMax && { salaryMax: { $lte: Number(salaryMax) } }),
+    ...(skillsArray?.length > 0 && { skills: { $in: skillsArray } }),
+    ...(salaryMin && { salaryMax: { $lte: Number(salaryMin) } }),
+    ...(salaryMax && { salaryMin: { $gte: Number(salaryMax) } }),
   };
 
   const jobs = await Job.find(query)
