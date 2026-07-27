@@ -111,9 +111,17 @@ async function updateJob(req, res) {
     throw new AppError("You dont have access", 403);
   }
 
-  const { title, description, location, jobType, experienceLevel } = req.body;
+  const { title, description, location, jobType, experienceLevel, status } =
+    req.body;
 
-  if (!title && !description && !location && !jobType && !experienceLevel) {
+  if (
+    !title &&
+    !description &&
+    !location &&
+    !jobType &&
+    !experienceLevel &&
+    !status
+  ) {
     throw new AppError("Provide at least one field to update", 400);
   }
 
@@ -123,6 +131,7 @@ async function updateJob(req, res) {
     ...(location && { location }),
     ...(jobType && { jobType }),
     ...(experienceLevel && { experienceLevel }),
+    ...(status && { status }),
   };
 
   await Job.updateOne({ _id: jobId }, payload, {
