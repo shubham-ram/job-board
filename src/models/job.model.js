@@ -43,5 +43,6 @@ const jobSchema = new mongoose.Schema(
 );
 
 jobSchema.index({ title: "text" });
+jobSchema.index({ status: 1, createdAt: -1 });
 
 export const Job = mongoose.model("Job", jobSchema);
