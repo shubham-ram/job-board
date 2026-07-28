@@ -6,7 +6,7 @@ import {
   applyJob,
   getAllApplicants,
   getMyApplications,
-  updateJobStatus,
+  updateApplicationStatus,
 } from "../controllers/application.controller.js";
 
 const router = Router();
@@ -28,12 +28,15 @@ router.get(
 router.get(
   "/jobs/:jobId/applications",
   verifyJWT,
-  authorize([ADMIN, COMPANY], getAllApplicants)
+  authorize([ADMIN, COMPANY]),
+  getAllApplicants
 );
 
-router.post(
+router.patch(
   "/applications/:id/status",
   verifyJWT,
   authorize([ADMIN, COMPANY]),
-  updateJobStatus
+  updateApplicationStatus
 );
+
+export default router;

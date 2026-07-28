@@ -18,8 +18,12 @@ async function applyJob(req, res) {
 
   const job = await Job.findById(jobId);
 
+  if (!job) {
+    throw new AppError("Job not found", 404);
+  }
+
   if (job.status !== "open") {
-    throw new AppError("This job is not open");
+    throw new AppError("This job is not open", 400);
   }
 
   const application = await Application.create({
@@ -46,6 +50,7 @@ async function getMyApplications(req, res) {
 
   const applications = await Application.find(query)
     .lean()
+    .populate("job")
     .sort({ createdAt: -1 })
     .skip(offset)
     .limit(pageLimit);
@@ -62,6 +67,10 @@ async function getAllApplicants(req, res) {
   const account = req.account;
 
   const job = await Job.findById(jobId);
+
+  if (!job) {
+    throw new AppError("Job not found", 404);
+  }
 
   const isOwner = job.createdBy.toString() === account._id.toString();
   const isAdmin = account.role === ADMIN;
@@ -89,7 +98,7 @@ async function getAllApplicants(req, res) {
   return res.status(200).json({ page, pageLimit, data: applicants });
 }
 
-async function updateJobStatus(req, res) {
+async function updateApplicationStatus(req, res) {
   const account = req.account;
   const applicationId = req.params.id;
   const jobStatus = req.body.status;
@@ -128,4 +137,9 @@ async function updateJobStatus(req, res) {
   });
 }
 
-export { applyJob, getMyApplications, getAllApplicants, updateJobStatus };
+export {
+  applyJob,
+  getMyApplications,
+  getAllApplicants,
+  updateApplicationStatus,
+};
