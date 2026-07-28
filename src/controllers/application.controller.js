@@ -101,9 +101,9 @@ async function getAllApplicants(req, res) {
 async function updateApplicationStatus(req, res) {
   const account = req.account;
   const applicationId = req.params.id;
-  const jobStatus = req.body.status;
+  const applicationStatus = req.body.status;
 
-  if (!jobStatus) {
+  if (!applicationStatus) {
     throw new AppError("Missing job status in payload", 400);
   }
 
@@ -125,7 +125,7 @@ async function updateApplicationStatus(req, res) {
   await Application.updateOne(
     { _id: applicationId },
     {
-      status: jobStatus,
+      status: applicationStatus,
     },
     {
       runValidators: true,
