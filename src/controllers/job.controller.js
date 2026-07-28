@@ -71,7 +71,7 @@ async function getJobs(req, res) {
     .limit(Number(pageLimit))
     .populate("createdBy");
 
-  return res.status(200).json({ page, pageLimit, jobs });
+  return res.status(200).json({ page, pageLimit, data: jobs });
 }
 
 async function getJob(req, res) {
