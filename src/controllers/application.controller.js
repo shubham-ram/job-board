@@ -7,13 +7,19 @@ async function applyJob(req, res) {
   const jobId = req.params.jobId;
   const userId = req.account._id;
 
-  const existingApplication = await Application.find({
+  const existingApplication = await Application.findOne({
     job: jobId,
     user: userId,
   });
 
   if (existingApplication) {
     throw new AppError("Already applied for this job", 400);
+  }
+
+  const job = await Job.findById(jobId);
+
+  if (job.status !== "open") {
+    throw new AppError("This job is not open");
   }
 
   const application = await Application.create({
@@ -60,12 +66,15 @@ async function getAllApplicants(req, res) {
   const isOwner = job.createdBy.toString() === account._id.toString();
   const isAdmin = account.role === ADMIN;
 
-  if (!isAdmin || !isOwner) {
+  if (!isAdmin && !isOwner) {
     throw new AppError("You dont have access", 403);
   }
 
   const page = Math.max(1, Number(req.query.page) || 1);
-  const pageLimit = Math.min(50, Number(req.query.pageLimit) || 10);
+  const pageLimit = Math.min(
+    50,
+    Math.max(1, Number(req.query.pageLimit)) || 10
+  );
 
   const query = { job: jobId };
   const offset = (page - 1) * pageLimit;
@@ -82,29 +91,35 @@ async function getAllApplicants(req, res) {
 
 async function updateJobStatus(req, res) {
   const account = req.account;
-  const jobId = req.params.jobId;
+  const applicationId = req.params.id;
+  const jobStatus = req.body.status;
 
-  const applicationId = req.body.id;
+  if (!jobStatus) {
+    throw new AppError("Missing job status in payload", 400);
+  }
 
-  const application = await Application.findById(applicationId);
+  const application = await Application.findById(applicationId).populate("job");
 
   if (!application) {
     throw new AppError("Application not found", 404);
   }
 
-  const job = await Job.findById(jobId);
+  const job = application.job;
 
-  const isOwner = job.createdBy.toString === account._id.toString();
+  const isOwner = job.createdBy.toString() === account._id.toString();
   const isAdmin = account.role === ADMIN;
 
-  if (!isAdmin || !isOwner) {
+  if (!isAdmin && !isOwner) {
     throw new AppError("You dont have access", 403);
   }
 
   await Application.updateOne(
     { _id: applicationId },
     {
-      status: req.body.status,
+      status: jobStatus,
+    },
+    {
+      runValidators: true,
     }
   );
 
