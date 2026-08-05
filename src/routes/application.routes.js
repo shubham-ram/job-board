@@ -8,6 +8,7 @@ import {
   getMyApplications,
   updateApplicationStatus,
 } from "../controllers/application.controller.js";
+import upload from "../middleware/multer.js";
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.post(
   "/jobs/:jobId/apply",
   verifyJWT,
   authorize([ADMIN, CANDIDATE]),
+  upload.single("resume"),
   applyJob
 );
 

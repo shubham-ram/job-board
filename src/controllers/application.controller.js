@@ -2,10 +2,16 @@ import { ADMIN } from "../constant.js";
 import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
 import AppError from "../utils/AppError.js";
+import uploadVideo from "../utils/uploadVideo.js";
 
 async function applyJob(req, res) {
   const jobId = req.params.jobId;
   const userId = req.account._id;
+  const fileData = req.file;
+
+  if (!fileData) {
+    throw new AppError("Please Upload Resume", 400);
+  }
 
   const existingApplication = await Application.findOne({
     job: jobId,
@@ -26,9 +32,14 @@ async function applyJob(req, res) {
     throw new AppError("This job is not open", 400);
   }
 
+  const result = await uploadVideo(fileData);
+
   const application = await Application.create({
     job: jobId,
     user: userId,
+    resumeUrl: result.secure_url,
+    resumePublicId: result.public_id,
+    resumeOriginalName: fileData.originalname,
   });
 
   return res.status(201).json(application);
