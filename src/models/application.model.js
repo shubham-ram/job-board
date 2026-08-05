@@ -17,6 +17,15 @@ const applicationSchema = new mongoose.Schema(
       enum: ["pending", "reviewed", "shortlisted", "rejected", "hired"],
       default: "pending",
     },
+    resumeUrl: {
+      type: String,
+    },
+    resumePublicId: {
+      type: String,
+    },
+    resumeOriginalName: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
