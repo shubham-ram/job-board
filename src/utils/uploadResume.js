@@ -2,7 +2,7 @@ import streamifier from "streamifier";
 import cloudinary from "../config/cloudinary.js";
 import { RESUME_FOLDER, RESUME_RESOURCE_TYPE } from "../constant.js";
 
-function uploadVideo(file) {
+function uploadResume(file) {
   return new Promise((res, rej) => {
     const config = {
       resource_type: RESUME_RESOURCE_TYPE,
@@ -22,4 +22,4 @@ function uploadVideo(file) {
   });
 }
 
-export default uploadVideo;
+export default uploadResume;
