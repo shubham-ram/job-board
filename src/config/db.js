@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 let retries = 0;
+let shuttingDown = false;
 const MAX_RETRIES = 5;
 
 async function connectDB() {
@@ -13,7 +14,17 @@ async function connectDB() {
   }
 }
 
+async function disconnectDB() {
+  shuttingDown = true;
+  await mongoose.disconnect();
+}
+
 mongoose.connection.on("disconnected", async () => {
+  if (shuttingDown) {
+    shuttingDown = false;
+    return;
+  }
+
   if (retries < MAX_RETRIES) {
     retries++;
     console.log(
@@ -30,4 +41,5 @@ mongoose.connection.on("connected", () => {
   retries = 0;
 });
 
+export { disconnectDB };
 export default connectDB;
