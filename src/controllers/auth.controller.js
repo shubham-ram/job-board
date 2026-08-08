@@ -7,9 +7,10 @@ import {
 } from "../utils/refreshToken.js";
 import { generateToken } from "../utils/jwt.js";
 import { REFRESH_TOKEN_EXPIRY } from "../constant.js";
+import { createAccount } from "../services/account.service.js";
 
 const registerAccount = async (payload) => {
-  const { email, password } = payload;
+  const { email } = payload;
 
   const existingAccount = await Account.findOne({ email });
 
@@ -17,17 +18,7 @@ const registerAccount = async (payload) => {
     throw new AppError("Account with this email already exists", 409);
   }
 
-  const passwordHash = await bcrypt.hash(password, 12);
-
-  const refreshToken = generateRefreshToken();
-  const hashedRefreshToken = getHashedRefreshToken(refreshToken);
-
-  const account = await Account.create({
-    ...payload,
-    refreshToken: hashedRefreshToken,
-    password: passwordHash,
-    refreshTokenExpiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY),
-  });
+  const { account, refreshToken } = await createAccount(payload);
 
   const accessToken = generateToken({ accountId: account._id });
 
