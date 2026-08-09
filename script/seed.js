@@ -36,9 +36,6 @@ async function seedDb() {
   const candidates = await Account.find({ role: "candidate" }).select("_id");
   const openJobs = await Job.find({ status: "open" }).select("_id");
 
-  console.log("candidates >>", candidates);
-  console.log("openJobs >>", openJobs);
-
   if (!candidates.length || !openJobs.length) {
     console.log("No candidates or open jobs — skipping applications");
     return;
