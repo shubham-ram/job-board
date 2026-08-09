@@ -13,11 +13,15 @@ import { globalLimiter } from "./middleware/rateLimiter.js";
 import authRoutes from "./routes/auth.routes.js";
 import jobRouter from "./routes/jobs.routes.js";
 import applicationRouter from "./routes/application.routes.js";
+import requestId from "./middleware/requestId.js";
 
 const app = express();
 
+morgan.token("id", (req) => req.id);
+
 app.use(helmet());
-app.use(morgan("dev"));
+app.use(requestId);
+app.use(morgan(":id :method :url :status :response-time ms"));
 
 app.use(
   cors({
