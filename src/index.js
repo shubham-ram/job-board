@@ -49,7 +49,7 @@ app.use((err, req, res, _next) => {
   const statusCode = err.statusCode || 500;
   const message = err.isOperational ? err.message : "Something went wrong";
 
-  console.error("err >>", err); // always log the full error server-side
+  console.error(`[${req.id}] err >>`, err); // always log the full error server-side
 
   res.status(statusCode).json({
     success: false,
