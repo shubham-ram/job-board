@@ -7,6 +7,7 @@ import {
   getAllApplicants,
   getMyApplications,
   updateApplicationStatus,
+  updateResume,
 } from "../controllers/application.controller.js";
 import upload from "../middleware/multer.js";
 
@@ -39,6 +40,14 @@ router.patch(
   verifyJWT,
   authorize([ADMIN, COMPANY]),
   updateApplicationStatus
+);
+
+router.patch(
+  "/jobs/:jobId/resume",
+  verifyJWT,
+  authorize([ADMIN, CANDIDATE]),
+  upload.single("resume"),
+  updateResume
 );
 
 export default router;

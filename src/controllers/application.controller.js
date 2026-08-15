@@ -2,7 +2,7 @@ import { ADMIN } from "../constant.js";
 import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
 import AppError from "../utils/AppError.js";
-import uploadResume from "../utils/uploadResume.js";
+import { replaceResume, uploadResume } from "../utils/resumeStorage.js";
 
 async function applyJob(req, res) {
   const jobId = req.params.jobId;
@@ -148,9 +148,49 @@ async function updateApplicationStatus(req, res) {
   });
 }
 
+async function updateResume(req, res) {
+  const userId = req.account._id;
+  const jobId = req.params.jobId;
+  const fileData = req.file;
+
+  if (!fileData) {
+    throw new AppError("Please Upload Resume", 400);
+  }
+
+  const existingApplication = await Application.findOne({
+    job: jobId,
+    user: userId,
+  });
+
+  if (!existingApplication) {
+    throw new AppError("Application doesnt exist", 404);
+  }
+  const prevResumeId = existingApplication.resumePublicId;
+  const applicationId = existingApplication._id;
+
+  const result = prevResumeId
+    ? await replaceResume(fileData, prevResumeId)
+    : await uploadResume(fileData);
+
+  await Application.updateOne(
+    {
+      _id: applicationId,
+    },
+    {
+      resumeUrl: result.secure_url,
+      resumePublicId: result.public_id,
+      resumeOriginalName: fileData.originalname,
+    },
+    { runValidators: true }
+  );
+
+  res.status(200).json({ message: "updated resume" });
+}
+
 export {
   applyJob,
   getMyApplications,
   getAllApplicants,
   updateApplicationStatus,
+  updateResume,
 };
