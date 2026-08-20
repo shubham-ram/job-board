@@ -52,7 +52,7 @@ router.patch(
 );
 
 router.get(
-  "/analytics/:jobId",
+  "/jobs/:jobId/analytics",
   verifyJWT,
   authorize([ADMIN, COMPANY]),
   jobAnalytics
