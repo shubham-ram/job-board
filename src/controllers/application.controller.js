@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { ADMIN } from "../constant.js";
 import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
@@ -187,10 +188,73 @@ async function updateResume(req, res) {
   res.status(200).json({ message: "updated resume" });
 }
 
+async function jobAnalytics(req, res) {
+  const jobId = req.params.jobId;
+  const account = req.account;
+
+  const job = await Job.findById(jobId);
+
+  if (!job) {
+    throw new AppError("Job does not exist", 404);
+  }
+
+  const isOwner = job.createdBy.toString() === account._id.toString();
+  const isAdmin = account.role === ADMIN;
+
+  if (!isAdmin && !isOwner) {
+    throw new AppError("You dont have access", 403);
+  }
+
+  const [result] = await Application.aggregate([
+    {
+      $match: { job: new mongoose.Types.ObjectId(jobId) },
+    },
+    {
+      $facet: {
+        totalApplicants: [
+          {
+            $count: "count",
+          },
+        ],
+        statusBreakdown: [
+          {
+            $group: {
+              _id: "$status",
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  const statusBreakdown = {
+    pending: 0,
+    reviewed: 0,
+    shortlisted: 0,
+    rejected: 0,
+    hired: 0,
+  };
+
+  result.statusBreakdown.forEach((status) => {
+    statusBreakdown[status._id] = status.count;
+  });
+
+  const output = {
+    totalApplicants: result.totalApplicants[0]?.count || 0,
+    statusBreakdown,
+  };
+
+  res.status(200).json({ data: output });
+}
+
 export {
   applyJob,
   getMyApplications,
   getAllApplicants,
   updateApplicationStatus,
   updateResume,
+  jobAnalytics,
 };
